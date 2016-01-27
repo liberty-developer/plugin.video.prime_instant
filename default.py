@@ -1,9 +1,8 @@
-
 from __future__ import unicode_literals
 import urllib
 import urlparse
 import urllib2
-#import requests
+import hashlib
 import socket
 import mechanize
 import cookielib
@@ -748,12 +747,24 @@ def helloPrimeProxy():
 
 def prepareVideo(videoID):
     try:
+        #get the player - token
         token = getUnicodePage(urlMainS+'/gp/video/streaming/player-token.json?callback=onWebToken_1')
         token = re.findall('onWebToken_1\({\"token\":\"(.*?)\"}\)', token)[0]
         if not token:
             return None
-        
-        asincontent = getUnicodePage('https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID=03eea5021df8bd4f6d40d5d99ddf2bf5ca0a242f7b309ca7abbb2146&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID=A2UT4ZAZE2AXPS&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content')
+
+        #get the CustomerId and build the deviceId
+        dealContent = getUnicodePage(urlMainS+'/gp/deal/ajax/getNotifierResources.html')
+        dealContent = json.loads(dealContent)
+        customerID = dealContent['resourceData']['GBCustomerData']['customerId']
+        log('CustomerID: ' + customerID)
+        if not customerID:
+            return None
+
+        deviceID = hashlib.sha224("CustomerID" + userAgent).hexdigest()
+        log('deviceID: ' + deviceID)
+
+        asincontent = getUnicodePage('https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content')
         asininfo = json.loads(asincontent)
         mpdURL = asininfo['audioVideoUrls']['avCdnUrlSets'][0]['avUrlInfoList'][0]['url'];
         if not mpdURL:
@@ -761,10 +772,10 @@ def prepareVideo(videoID):
         mpdURL = mpdURL.replace("https", "http")
         log('MPD: '+mpdURL)
 
-        licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID=03eea5021df8bd4f6d40d5d99ddf2bf5ca0a242f7b309ca7abbb2146&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID=A2UT4ZAZE2AXPS&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
+        licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
 
         wvStreamInit = 'mpdurl='+base64.b64encode(mpdURL)+'&licurl='+base64.b64encode(licURL)
-        
+
         s = socket.create_connection(("127.0.0.1", 8888),5)
         s.sendall('GET /initialize?'+wvStreamInit + ' HTTP/1.1\r\n\r\n')
         sessionresp = ""
@@ -774,7 +785,7 @@ def prepareVideo(videoID):
         s.close()
 
         log('SessionResponse: '+sessionresp)
-        
+
         headers = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", sessionresp))
 
         log(headers)
@@ -787,12 +798,11 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
     sessionid = prepareVideo(videoID)
     if not sessionid:
         return False
-    url = 'http://localhost:8888/play?'+sessionid    
+    url = 'http://127.0.0.1:8888/play?'+sessionid
      
     listitem = xbmcgui.ListItem(path=url)
     xbmcplugin.setResolvedUrl(pluginhandle, True, listitem=listitem)
-    
-    
+
 def showInfo(videoID):
     xbmcplugin.setContent(pluginhandle, "movies")
     content = getUnicodePage(urlMain+"/dp/"+videoID + "/?_encoding=UTF8")
