@@ -1,3 +1,4 @@
+
 from __future__ import unicode_literals
 import urllib
 import urlparse
@@ -33,7 +34,7 @@ icon = os.path.join(addonFolder, "icon.png")#.encode('utf-8')
 
 def translation(id):
     return addon.getLocalizedString(id) #.encode('utf-8')
-    
+
 if not os.path.exists(os.path.join(addonUserDataFolder, "settings.xml")):
     xbmc.executebuiltin(unicode('XBMC.Notification(Info:,'+translation(30081)+',10000,'+icon+')').encode("utf-8"))
     addon.openSettings()
@@ -213,7 +214,7 @@ def listOriginals():
         content = getUnicodePage(urlMain+"/b/?ie=UTF8&node=9940930011")
     elif siteVersion=="co.uk":
         content = getUnicodePage(urlMain+"/b/?ie=UTF8&node=5687760031")
-    debug(content)
+    #debug(content)
     match = re.compile('csrf":"(.+?)"', re.DOTALL).findall(content)
     if match:
         addon.setSetting('csrfToken', match[0])
@@ -326,7 +327,7 @@ def listWatchList(url):
                 if showAvailability:
                     match = re.compile('\<span\s+class\s*=\s*"packshot-message"\s*\>(.+?)\<\/span\>', re.DOTALL).findall(entry)
                     if match:
-                        avail=" - " + cleanInput(match[0])                        
+                        avail=" - " + cleanInput(match[0])
 
                 if videoType=="tv":
                     if useWLSeriesComplete:
@@ -335,7 +336,7 @@ def listWatchList(url):
 
                         if title in showEntries:
                             continue
-                        
+
                         addShowDirR(cleanTitleTMDB(title) + avail, videoID, "listSeasons", thumbUrl, videoType, showAll=True)
                         showEntries.append(title)
                     else:
@@ -347,9 +348,9 @@ def listWatchList(url):
                     title = cleanTitle(title)
                     dlParams.append({'type':videoType, 'id':videoID, 'title':cleanTitleTMDB(cleanTitle(title)), 'year':''})
                     addLinkR(cleanTitleTMDB(title) + avail, videoID, "playVideo", thumbUrl, videoType)
-                    
-                    
-    
+
+
+
     match_nextpage = re.compile('<a href=".+?dv_web_wtls_pg_nxt.+?&page=(.+?)&.+?">', re.DOTALL).findall(content)
     if match_nextpage:
         addDir(translation(30001), url + "&page=" + match_nextpage[0].strip(), "listWatchList", "DefaultTVShows.png")
@@ -383,13 +384,13 @@ def listMovies(url):
     match = re.compile('csrf":"(.+?)"', re.DOTALL).findall(content)
     if match:
         addon.setSetting('csrfToken', match[0])
-    
+
     args = urlparse.parse_qs(url[1:])
     page = args.get('page', None)
     if page is not None:
         if int(page[0]) > 1:
             content = content[content.find('breadcrumb.breadcrumbSearch'):]
-    
+
     spl = content.split('id="result_')
     dlParams = []
     videoimage = ScrapeUtils.VideoImage()
@@ -596,15 +597,15 @@ def listSeasons(seriesName, seriesID, thumb, showAll = False):
     match = re.compile('"csrfToken":"(.+?)"', re.DOTALL).findall(content)
     if match:
         addon.setSetting('csrfToken', match[0])
-    if '<select name="seasonAsinAndRef"' in content:
-        content = content[content.find('<select name="seasonAsinAndRef"'):]
+    if '<select name="seasonSelector"' in content:
+        content = content[content.find('<select name="seasonSelector"'):]
         content = content[:content.find('</select>')]
         match = re.compile('<option value="(.+?):.+?data-a-html-content="(.+?)"', re.DOTALL).findall(content)
         if match:
             for seasonID, title in match:
-                if "dv-dropdown-prime" in title or showAll or showPaidVideos:
-                    if "\n" in title:
-                        title = title[:title.find("\n")]
+                if "dv-season-selector-prime" in title or showAll or showPaidVideos:
+                    if "&lt" in title:
+                        title = title[:title.find("&lt")]
                     addSeasonDir(title, seasonID, 'listEpisodes', thumb, seriesName, seriesID)
             xbmcplugin.endOfDirectory(pluginhandle)
             xbmc.sleep(100)
@@ -632,7 +633,7 @@ def listEpisodes(seriesID, seasonID, thumb, content="", seriesName=""):
     xbmcplugin.setContent(pluginhandle, "episodes")
     if not content:
         content = getUnicodePage(urlMain+"/gp/product/"+seasonID)
-    debug("listEpisodes")
+    debug("listEpisodes:" + urlMain+"/gp/product/"+seasonID)
     #debug(content)
     match = re.compile('"csrfToken":"(.+?)"', re.DOTALL).findall(content)
     if match:
@@ -641,24 +642,22 @@ def listEpisodes(seriesID, seasonID, thumb, content="", seriesName=""):
     seasonNr="0"
     if matchSeason:
         seasonNr=matchSeason[0]
-    
-    epliststart = content.rfind("<li ", 0, content.find("first-episode"))
-    eplistend = content.find("</ul>", epliststart)
+
+    epliststart = content.find("dv-episode-list")
+    eplistend = content.find("ND dv-dp-top-wrapper", epliststart)
     content = content[epliststart:eplistend]
-    spl = content.split('<li ')
+    spl = content.split('<div id="dv-el-id-')
     for i in range(1, len(spl), 1):
         entry = spl[i]
-        entry = entry[:entry.find('</li>')]
-        match = re.compile('class="episode-title">(.+?)<', re.DOTALL).findall(entry)
-        #if match and ('class="prime-logo-small"' in entry or 'class="episode-status cell-free"' in entry or 'class="episode-status cell-owned"' in entry or 'class="episode-status cell-unavailable"' in entry):
+        match = re.compile('<!-- Title -->(.+?)</', re.DOTALL).findall(entry)
         if match and checkEpisodeStatus(entry):
             title = match[0]
             title = cleanTitle(title)
             episodeNr = title[:title.find('.')]
             title = title[title.find('.')+1:].strip()
-            match = re.compile('/gp/product/(.+?)/', re.DOTALL).findall(entry)
+            match = re.compile('data-asin="(.+?)"', re.DOTALL).findall(entry)
             episodeID = match[0]
-            match = re.compile('<p>.+?</span>\s*(.+?)\s*</p>', re.DOTALL).findall(entry)
+            match = re.compile('<p class="a-color-base a-text-normal">(.+?)</p>', re.DOTALL).findall(entry)
             desc = ""
             if match:
                 desc = cleanTitle(match[0])
@@ -679,7 +678,7 @@ def listEpisodes(seriesID, seasonID, thumb, content="", seriesName=""):
             aired = ""
             if match:
                 aired = match[0]+"-01-01"
-            match = re.compile('src="(.+?)"', re.DOTALL).findall(entry)
+            match = re.compile('background-image: url\((.+?)\);', re.DOTALL).findall(entry)
             if match:
                 thumb = match[0].replace("._SX133_QL80_.jpg","._SX400_.jpg")
             match = re.compile('class="progress-bar">.+?width: (.+?)%', re.DOTALL).findall(entry)
@@ -697,7 +696,7 @@ def listEpisodes(seriesID, seasonID, thumb, content="", seriesName=""):
 
 def listGenres(url, videoType):
     content = getUnicodePage(url)
-    debug(content)
+    #debug(content)
     content = content[content.find('<ul class="column vPage1">'):]
     content = content[:content.find('</div>')]
     match = re.compile('href="(.+?)">.+?>(.+?)</span>.+?>(.+?)<', re.DOTALL).findall(content)
@@ -745,7 +744,7 @@ def helloPrimeProxy():
     except:
         return False
 
-def prepareVideo(videoID):
+def playVideo(videoID, selectQuality=False, playTrailer=False):
     try:
         #get the player - token
         token = getUnicodePage(urlMainS+'/gp/video/streaming/player-token.json?callback=onWebToken_1')
@@ -762,7 +761,6 @@ def prepareVideo(videoID):
             return None
 
         deviceID = hashlib.sha224("CustomerID" + userAgent).hexdigest()
-        log('deviceID: ' + deviceID)
 
         asincontent = getUnicodePage('https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content')
         asininfo = json.loads(asincontent)
@@ -774,34 +772,14 @@ def prepareVideo(videoID):
 
         licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
 
-        wvStreamInit = 'mpdurl='+base64.b64encode(mpdURL)+'&licurl='+base64.b64encode(licURL)
+        listitem = xbmcgui.ListItem(path=mpdURL)
+        listitem.setProperty('inputstream.mpd.license_type', 'com.widevine.alpha')
+        listitem.setProperty('inputstream.mpd.license_key', licURL)
 
-        s = socket.create_connection(("127.0.0.1", 8888),5)
-        s.sendall('GET /initialize?'+wvStreamInit + ' HTTP/1.1\r\n\r\n')
-        sessionresp = ""
-        while not "\r\n\r\n" in sessionresp:
-            sessionresp += s.recv(1024)
-            pass
-        s.close()
+        xbmcplugin.setResolvedUrl(pluginhandle, True, listitem=listitem)
 
-        log('SessionResponse: '+sessionresp)
-
-        headers = dict(re.findall(r"(?P<name>.*?): (?P<value>.*?)\r\n", sessionresp))
-
-        log(headers)
-
-        return headers['Session-Id']
     except:
-        return None
-
-def playVideo(videoID, selectQuality=False, playTrailer=False):
-    sessionid = prepareVideo(videoID)
-    if not sessionid:
         return False
-    url = 'http://127.0.0.1:8888/play?'+sessionid
-     
-    listitem = xbmcgui.ListItem(path=url)
-    xbmcplugin.setResolvedUrl(pluginhandle, True, listitem=listitem)
 
 def showInfo(videoID):
     xbmcplugin.setContent(pluginhandle, "movies")
@@ -841,7 +819,7 @@ def showInfo(videoID):
         wnd.getControl(wnd.getFocusId()).selectItem(1)
     except:
         pass
-        
+
 
 def deleteCookies():
     if os.path.exists(cookieFile):
@@ -914,7 +892,7 @@ def search(type):
                 listMovies(urlMain+"/mn/search/ajax/?_encoding=UTF8&url=node%3D3356010031&search-alias=instant-video&field-keywords="+search_string)
             elif type=="tv":
                 listShows(urlMain+"/mn/search/ajax/?_encoding=UTF8&url=node%3D3356011031&search-alias=instant-video&field-keywords="+search_string)
-        
+
 
 
 def addToQueue(videoID, videoType):
@@ -938,7 +916,7 @@ def login(content = None, statusOnly = False):
     if content is None:
         content = getUnicodePage(urlMainS)
     signoutmatch = re.compile("declare\('config.signOutText',(.+?)\);", re.DOTALL).findall(content)
-    if '","isPrime":1' in content: # 
+    if '","isPrime":1' in content: #
         return "prime"
     elif signoutmatch[0].strip() != "null":
         return "noprime"
@@ -970,7 +948,7 @@ def login(content = None, statusOnly = False):
                 cj.load(cookieFile)
                 content = getUnicodePage(urlMainS)
         signoutmatch = re.compile("declare\('config.signOutText',(.+?)\);", re.DOTALL).findall(content)
-        if '","isPrime":1' in content: # 
+        if '","isPrime":1' in content: #
             return "prime"
         elif signoutmatch[0].strip() != "null":
             return "noprime"
@@ -984,7 +962,7 @@ def cleanInput(str):
         xmlc = re.compile('&#(.+?);', re.DOTALL).findall(str)
         for c in xmlc:
             str = str.replace("&#"+c+";", unichr(int(c)))
-    
+
     p = HTMLParser()
     str = p.unescape(str)
     #str = str.encode("utf-8")
@@ -1014,9 +992,9 @@ def cleanSeasonTitle(title):
 
 def cleanTitleTMDB(title):
     if "[" in title:
-        title = title[:title.find("[")]    
+        title = title[:title.find("[")]
     if " OmU" in title:
-        title = title[:title.find(" OmU")]    
+        title = title[:title.find(" OmU")]
     return title
 
 
@@ -1245,18 +1223,9 @@ def addEpisodeLink(name, url, mode, iconimage, desc="", duration="", season="", 
 
 
 def checkEpisodeStatus(entry):
-    statusList = []
-    statusList.append("prime-logo-small")
-    statusList.append("episode-status cell-free")
-    statusList.append("episode-status cell-owned")
-    statusList.append("episode-status cell-unavailable")
-    if showPaidVideos:
-        statusList.append("episode-status ")
-    for status in statusList:
-        statusString = 'class="' + status + '"'
-        if statusString in entry:
-            return True
-    return False
+    if '?autoplay=1' in entry:
+        return True
+    return False;
 
 params = parameters_string_to_dict(sys.argv[2])
 mode = urllib.unquote_plus(params.get('mode', ''))
