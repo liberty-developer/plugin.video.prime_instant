@@ -1083,8 +1083,8 @@ def addDir(name, url, mode, iconimage, videoType=""):
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)+"&thumb="+urllib.quote_plus(iconimage.encode("utf8"))+"&videoType="+urllib.quote_plus(videoType.encode("utf8"))
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
-    liz.setInfo(type="video", infoLabels={"title": name})
-    liz.setProperty("fanart_image", defaultFanart)
+    liz.setInfo(type="video", infoLabels={"title": name, "mediatype": videoType})
+    liz.setArt({"fanart": defaultFanart, "poster": iconimage})
     ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True)
     return ok
 
@@ -1102,7 +1102,7 @@ def addShowDir(name, url, mode, iconimage, videoType="", desc="", duration="", y
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
     liz.setInfo(type="video", infoLabels={"title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
-    liz.setProperty("fanart_image", fanartFile)
+    liz.setArt({"fanart": fanartFile, "poster": iconimage})
     entries = []
     entries.append((translation(30051), 'RunPlugin(plugin://'+addonID+'/?mode=playTrailer&url='+urllib.quote_plus(url.encode("utf8"))+')',))
     entries.append((translation(30052), 'RunPlugin(plugin://'+addonID+'/?mode=addToQueue&url='+urllib.quote_plus(url.encode("utf8"))+'&videoType='+urllib.quote_plus(videoType.encode("utf8"))+')',))
@@ -1172,7 +1172,7 @@ def addLinkR(name, url, mode, iconimage, videoType="", desc="", duration="", yea
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
     liz.setInfo(type="video", infoLabels={"mediatype": videoType, "title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
-    liz.setProperty("fanart_image", fanartFile)
+    liz.setArt({"fanart": fanartFile, "poster": iconimage})
     entries = []
     entries.append((translation(30054), 'RunPlugin(plugin://'+addonID+'/?mode=playVideo&url='+urllib.quote_plus(url.encode("utf8"))+'&selectQuality=true)',))
     entries.append((translation(30060), 'Container.Update(plugin://'+addonID+'/?mode=showInfo&url='+urllib.quote_plus(url.encode("utf8"))+')',))
@@ -1197,8 +1197,8 @@ def addSeasonDir(name, url, mode, iconimage, seriesName, seriesID):
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)+"&seriesID="+urllib.quote_plus(seriesID.encode("utf8"))+"&thumb="+urllib.quote_plus(iconimage.encode("utf8"))+"&name="+urllib.quote_plus(seriesName.encode("utf8"))
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
-    liz.setInfo(type="video", infoLabels={"title": name, "TVShowTitle": seriesName})
-    liz.setProperty("fanart_image", fanartFile)
+    liz.setInfo(type="video", infoLabels={"title": name, "TVShowTitle": seriesName, "mediatype": "season"})
+    liz.setArt({"fanart": fanartFile, "poster": iconimage})
     entries = []
     entries.append((translation(30056), 'RunPlugin(plugin://'+addonID+'/?mode=addSeasonToLibrary&url='+urllib.quote_plus(url.encode("utf8"))+'&seriesID='+urllib.quote_plus(seriesID.encode("utf8"))+'&name='+urllib.quote_plus(seriesName.strip().encode("utf8"))+')',))
     liz.addContextMenuItems(entries)
@@ -1212,8 +1212,8 @@ def addEpisodeLink(name, url, mode, iconimage, desc="", duration="", season="", 
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
-    liz.setInfo(type="video", infoLabels={"title": name, "plot": desc, "duration": duration, "season": season, "episode": episodeNr, "aired": aired, "playcount": playcount, "TVShowTitle": seriesName})
-    liz.setProperty("fanart_image", fanartFile)
+    liz.setInfo(type="video", infoLabels={"title": name, "mediatype": "episode", "plot": desc, "duration": duration, "season": season, "episode": episodeNr, "aired": aired, "playcount": playcount, "TVShowTitle": seriesName})
+    liz.setArt({"fanart": fanartFile})
     entries = []
     entries.append((translation(30054), 'RunPlugin(plugin://'+addonID+'/?mode=playVideo&url='+urllib.quote_plus(url.encode("utf8"))+'&selectQuality=true)',))
     liz.addContextMenuItems(entries)
