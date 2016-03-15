@@ -1125,8 +1125,8 @@ def addShowDirR(name, url, mode, iconimage, videoType="", desc="", duration="", 
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)+"&thumb="+urllib.quote_plus(iconimage.encode("utf8"))+"&name="+urllib.quote_plus(name.encode("utf8"))+sAll
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
-    liz.setInfo(type="video", infoLabels={"title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
-    liz.setProperty("fanart_image", fanartFile)
+    liz.setInfo(type="video", infoLabels={"mediatype": "tvshow", "title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
+    liz.setArt({"fanart": fanartFile, "poster": iconimage})
     entries = []
     entries.append((translation(30051), 'RunPlugin(plugin://'+addonID+'/?mode=playTrailer&url='+urllib.quote_plus(url.encode("utf8"))+')',))
     entries.append((translation(30053), 'RunPlugin(plugin://'+addonID+'/?mode=removeFromQueue&url='+urllib.quote_plus(url.encode("utf8"))+'&videoType='+urllib.quote_plus(videoType.encode("utf8"))+')',))
@@ -1143,8 +1143,8 @@ def addLink(name, url, mode, iconimage, videoType="", desc="", duration="", year
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)+"&name="+urllib.quote_plus(name.encode("utf8"))+"&thumb="+urllib.quote_plus(iconimage.encode("utf8"))
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
-    liz.setInfo(type="video", infoLabels={"title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
-    liz.setProperty("fanart_image", fanartFile)
+    liz.setInfo(type="video", infoLabels={"mediatype": videoType, "title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
+    liz.setArt({"fanart": fanartFile, "poster": iconimage})
     entries = []
     entries.append((translation(30054), 'RunPlugin(plugin://'+addonID+'/?mode=playVideo&url='+urllib.quote_plus(url.encode("utf8"))+'&selectQuality=true)',))
     #entries.append(("PreCache Video", 'RunPlugin(plugin://'+addonID+'/?mode=precacheVideo&url='+urllib.quote_plus(url.encode("utf8"))+')',))
@@ -1171,7 +1171,7 @@ def addLinkR(name, url, mode, iconimage, videoType="", desc="", duration="", yea
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)+"&name="+urllib.quote_plus(name.encode("utf8"))+"&thumb="+urllib.quote_plus(iconimage.encode("utf8"))
     ok = True
     liz = xbmcgui.ListItem(name, iconImage="DefaultTVShows.png", thumbnailImage=iconimage)
-    liz.setInfo(type="video", infoLabels={"title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
+    liz.setInfo(type="video", infoLabels={"mediatype": videoType, "title": name, "plot": desc, "duration": duration, "year": year, "mpaa": mpaa, "director": director, "genre": genre, "rating": rating})
     liz.setProperty("fanart_image", fanartFile)
     entries = []
     entries.append((translation(30054), 'RunPlugin(plugin://'+addonID+'/?mode=playVideo&url='+urllib.quote_plus(url.encode("utf8"))+'&selectQuality=true)',))
