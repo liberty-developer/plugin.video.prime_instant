@@ -302,9 +302,9 @@ def listWatchList(url):
             if not match:
                 match = re.compile('type="(.+?)" asin=', re.DOTALL).findall(entry)
             if match:
-                if match[0] == "downloadable_tv_season" or match[0] == "tv" or match[0] == "season":
+                if match[0] in ["downloadable_tv_season", "tv", "season"]:
                     videoType = "tv"
-                elif match[0] == "downloadable_movie" or match[0] == "movie":
+                elif match[0] in ["downloadable_movie", "movie"]:
                     videoType = "movie"
                 else:
                     print match[0]
@@ -323,13 +323,13 @@ def listWatchList(url):
                 thumbUrl = ""
                 if match:
                     thumbUrl = ScrapeUtils.VideoImage().ImageFile(match[0])
-                avail=''
+                avail = ''
                 if showAvailability:
                     match = re.compile('\<span\s+class\s*=\s*"packshot-message"\s*\>(.+?)\<\/span\>', re.DOTALL).findall(entry)
                     if match:
                         avail=" - " + cleanInput(match[0])
 
-                if videoType=="tv":
+                if videoType == "tv":
                     if useWLSeriesComplete:
                         dlParams.append({'type':videoType, 'id':videoID, 'title':cleanTitleTMDB(cleanSeasonTitle(title)), 'year':''})
                         title = cleanSeasonTitle(title)+avail
@@ -1113,14 +1113,14 @@ def addShowDir(name, url, mode, iconimage, videoType="", desc="", duration="", y
     return ok
 
 
-def addShowDirR(name, url, mode, iconimage, videoType="", desc="", duration="", year="", mpaa="", director="", genre="", rating="", showAll = False):
+def addShowDirR(name, url, mode, iconimage, videoType="", desc="", duration="", year="", mpaa="", director="", genre="", rating="", showAll=False):
     filename = (''.join(c for c in url if c not in '/\\:?"*|<>')).strip()+".jpg"
     coverFile = os.path.join(cacheFolderCoversTMDB, filename)
     fanartFile = os.path.join(cacheFolderFanartTMDB, filename)
     if os.path.exists(coverFile):
         iconimage = coverFile
     sAll = ""
-    if (showAll):
+    if showAll:
         sAll = "&showAll=true"
     u = sys.argv[0]+"?url="+urllib.quote_plus(url.encode("utf8"))+"&mode="+str(mode)+"&thumb="+urllib.quote_plus(iconimage.encode("utf8"))+"&name="+urllib.quote_plus(name.encode("utf8"))+sAll
     ok = True
@@ -1223,9 +1223,7 @@ def addEpisodeLink(name, url, mode, iconimage, desc="", duration="", season="", 
 
 
 def checkEpisodeStatus(entry):
-    if '?autoplay=1' in entry:
-        return True
-    return False;
+    return '?autoplay=1' in entry
 
 params = parameters_string_to_dict(sys.argv[2])
 mode = urllib.unquote_plus(params.get('mode', ''))
