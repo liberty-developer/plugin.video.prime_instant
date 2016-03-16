@@ -63,21 +63,16 @@ showKids = addon.getSetting("showKids") == "true"
 forceView = addon.getSetting("forceView") == "true"
 updateDB = addon.getSetting("updateDB") == "true"
 useTMDb = addon.getSetting("useTMDb") == "true"
-usePrimeProxy = False #addon.getSetting("usePrimeProxy") == "true"
 useWLSeriesComplete = addon.getSetting("useWLSeriesComplete") == "true"
 watchlistOrder = addon.getSetting("watchlistOrder")
 watchlistOrder = ["DATE_ADDED_DESC", "TITLE_ASC"][int(watchlistOrder)]
 watchlistTVOrder = addon.getSetting("watchlistTVOrder")
 watchlistTVOrder = ["DATE_ADDED_DESC", "TITLE_ASC"][int(watchlistTVOrder)]
-maxBitrate = addon.getSetting("maxBitrate")
-maxBitrate = [300, 600, 900, 1350, 2000, 2500, 4000, 6000, 10000, -1][int(maxBitrate)]
-maxDevices = 3
-maxDevicesWaitTime = 120
 selectLanguage = addon.getSetting("selectLanguage")
 siteVersion = addon.getSetting("siteVersion")
 apiMain = ["atv-ps", "atv-ps-eu", "atv-ps-eu"][int(siteVersion)]
-rtmpMain = ["azusfms", "azeufms", "azeufms"][int(siteVersion)]
-siteVersionsList = ["com", "co.uk", "de"]
+marketplaceId=["ATVPDKIKX0DER", "A1F83G8C2ARO7P", "A1PA6795UKMFR9", "A1VC38T7YXB528"][int(siteVersion)]
+siteVersionsList = ["com", "co.uk", "de", "jp"]
 siteVersion = siteVersionsList[int(siteVersion)]
 viewIdMovies = addon.getSetting("viewIdMovies")
 viewIdShows = addon.getSetting("viewIdShows")
@@ -85,12 +80,9 @@ viewIdSeasons = addon.getSetting("viewIdSeasons")
 viewIdEpisodes = addon.getSetting("viewIdEpisodes")
 viewIdDetails = addon.getSetting("viewIdDetails")
 urlMainS = "https://www.amazon."+siteVersion
-#urlMain = urlMainS
 urlMain = "http://www.amazon."+siteVersion
 addon.setSetting('email', '')
 addon.setSetting('password', '')
-#deviceTypeID = "A324MFXUEZFF7B"
-deviceTypeID = "A35LWR0L7KC0TJ"
 
 cookieFile = os.path.join(addonUserDataFolder, siteVersion + ".cookies")
 
@@ -707,43 +699,6 @@ def listGenres(url, videoType):
             addDir(cleanTitle(title), urlMain+url.replace("/s/","/mn/search/ajax/").replace("&amp;","&"), 'listShows', "")
     xbmcplugin.endOfDirectory(pluginhandle)
 
-def selectLang(content):
-    content = content[content.find('class="dv-toggle-box dv-tb-closed">'):content.find('<span id="dv-mta-submit-announce"')]
-    matchlo = re.compile('<option value="(.+?)".*?>(.+?)</option>', re.DOTALL).findall(content)
-    if len(matchlo) > 0:
-        opt = []
-        for i,val in enumerate(matchlo):
-            opt.append([val[0].strip(), val[1].strip()])
-        return opt
-    return None
-
-def changeStream(videoID):
-    args = urlparse.parse_qs(sys.argv[2][1:])
-    title = args.get('title', videoID)[0]
-    thumburl = args.get('thumbnailimage', '')[0]
-    xbmc.Player().pause()
-    listitem = xbmcgui.ListItem(title, path="http://127.0.0.1:59950/"+videoID + ".mp4", thumbnailImage=thumburl)
-    listitem.setProperty('IsPlayable', 'true')
-    listitem.setProperty('TotalTime', str(xbmc.Player().getTotalTime()))
-    listitem.setProperty('ResumeTime', str(xbmc.Player().getTime()))
-    xbmcplugin.setResolvedUrl(pluginhandle, True, listitem)
-
-def helloPrimeProxy():
-    try:
-        s = socket.create_connection(("127.0.0.1", 59910),1)
-        primeproxyjson = base64.b64encode(json.dumps({"hello": True})) + "\r\n"
-        s.sendall(primeproxyjson)
-        pcdata = ""
-        while not "\r\n" in pcdata:
-            pcdata += s.recv(1024)
-            pass
-        s.close()
-        pcdata = json.loads(base64.b64decode(pcdata.strip()))
-        if pcdata['status'] == "success":
-            return True
-    except:
-        return False
-
 def playVideo(videoID, selectQuality=False, playTrailer=False):
     try:
         #get the player - token
@@ -762,7 +717,7 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
 
         deviceID = hashlib.sha224("CustomerID" + userAgent).hexdigest()
 
-        asincontent = getUnicodePage('https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content')
+        asincontent = getUnicodePage('https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content')
         asininfo = json.loads(asincontent)
         mpdURL = asininfo['audioVideoUrls']['avCdnUrlSets'][0]['avUrlInfoList'][0]['url'];
         if not mpdURL:
@@ -770,7 +725,7 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         mpdURL = mpdURL.replace("https", "http")
         log('MPD: '+mpdURL)
 
-        licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID=A1PA6795UKMFR9&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
+        licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
 
         listitem = xbmcgui.ListItem(path=mpdURL)
         listitem.setProperty('inputstream.mpd.license_type', 'com.widevine.alpha')
@@ -1261,9 +1216,7 @@ if os.path.exists(cookieFile):
 else:
     login()
 
-if mode == 'changeStream':
-    changeStream(url)
-elif mode == 'listMovies':
+if mode == 'listMovies':
     listMovies(url)
 elif mode == 'listShows':
     listShows(url)
