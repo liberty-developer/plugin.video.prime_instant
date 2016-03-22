@@ -730,6 +730,7 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         listitem = xbmcgui.ListItem(path=mpdURL)
         listitem.setProperty('inputstream.mpd.license_type', 'com.widevine.alpha')
         listitem.setProperty('inputstream.mpd.license_key', licURL)
+        listitem.setProperty('inputstreamaddon', 'inputstream.mpd')
 
         xbmcplugin.setResolvedUrl(pluginhandle, True, listitem=listitem)
 
