@@ -252,7 +252,7 @@ def listOriginals():
 def listWatchList(url):
     content = getUnicodePage(url)
     debug("listWatchList")
-    #debug(content)
+    debug(content)
     #fp = open(os.path.join(addonFolder, "videolib.html"), "r")
     #content = unicode(fp.read(), "iso-8859-15")
     #fp.close()
@@ -301,7 +301,7 @@ def listWatchList(url):
                 else:
                     print match[0]
                     return
-                match = re.compile('" asin="(.+?)"', re.DOTALL).findall(entry)
+                match = re.compile('" data-asin="(.+?)"', re.DOTALL).findall(entry)
                 if not match:
                     match = re.compile('id="(.+?)"', re.DOTALL).findall(entry)
                 videoID = match[0]
