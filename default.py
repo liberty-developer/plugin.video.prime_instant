@@ -252,7 +252,7 @@ def listOriginals():
 def listWatchList(url):
     content = getUnicodePage(url)
     debug("listWatchList")
-    debug(content)
+    #debug(content)
     #fp = open(os.path.join(addonFolder, "videolib.html"), "r")
     #content = unicode(fp.read(), "iso-8859-15")
     #fp.close()
@@ -265,7 +265,12 @@ def listWatchList(url):
     videoType = None
     delim = ''
     oldstyle = False
-    if '<div class="grid-list-item' in content:
+
+    if '<div class="a-section' in content:
+        delim = '<div class="a-section'
+        beginarea = content.find(delim)
+        area = content[beginarea:content.find('<div id="aiv-cl-main-bottom">', beginarea)]
+    elif '<div class="grid-list-item' in content:
         delim = '<div class="grid-list-item'
         beginarea = content.find(delim)
         area = content[beginarea:content.find('<div id="navFooter">', beginarea)]
@@ -278,6 +283,7 @@ def listWatchList(url):
         beginarea = content.find(delim)
         area = content[beginarea:]
     itemc = area.count(delim)
+
     for i in range(0, itemc, 1):
         if (i < itemc):
             elementend = area.find(delim, 1)
@@ -287,10 +293,11 @@ def listWatchList(url):
             items.append(area)
     for i in range(0, len(items), 1):
         entry = items[i]
+
         if oldstyle:
             entry = entry[:entry.find('</td>')]
-        if "/library/" in url or ("/watchlist/" in url and ("class='prime-meta'" in entry or 'class="prime-logo"' in entry or "class='item-green'" in entry or 'class="packshot-' in entry)):
-            match = re.compile('data-prod-type="(.+?)"', re.DOTALL).findall(entry)
+        if "/library/" in url or ("/watchlist/" in url and ('class="dv-sash dv-sash-prime"' in entry or "class='prime-meta'" in entry or 'class="prime-logo"' in entry or "class='item-green'" in entry or 'class="packshot-' in entry)):
+            match = re.compile('data-type="(.+?)"', re.DOTALL).findall(entry)
             if not match:
                 match = re.compile('type="(.+?)" asin=', re.DOTALL).findall(entry)
             if match:
@@ -305,11 +312,11 @@ def listWatchList(url):
                 if not match:
                     match = re.compile('id="(.+?)"', re.DOTALL).findall(entry)
                 videoID = match[0]
-                match = re.compile('<img alt="(.+?)" height', re.DOTALL).findall(entry)
-                if not match:
-                    match = re.compile('title="(.+?)"', re.DOTALL).findall(entry)
-                title = match[0]
 
+                match = re.compile('data-title="(.+?)"', re.DOTALL).findall(entry)
+                if not match:
+                  match = re.compile('<img alt="(.+?)" height', re.DOTALL).findall(entry)
+                title = match[0]
 
                 match = re.compile('src="(.+?)"', re.DOTALL).findall(entry)
                 thumbUrl = ""
