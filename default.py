@@ -301,7 +301,7 @@ def listWatchList(url):
             if not match:
                 match = re.compile('type="(.+?)" asin=', re.DOTALL).findall(entry)
             if match:
-                if match[0] in ["downloadable_tv_season", "tv", "season"]:
+                if match[0] in ["downloadable_season", "tv", "season"]:
                     videoType = "tv"
                 elif match[0] in ["downloadable_movie", "movie"]:
                     videoType = "movie"
@@ -928,7 +928,6 @@ def cleanInput(str):
 
     p = HTMLParser()
     str = p.unescape(str)
-    #str = str.encode("utf-8")
     return str
 
 def cleanTitle(title):
@@ -950,8 +949,13 @@ def cleanSeasonTitle(title):
         title = title[:title.rfind("Volume")]
     if "Series" in title:
         title = title[:title.rfind("Series")]
-    return title.strip(" -,")
+    title = title.strip(" -,")
 
+    xmlc = re.compile('&#(.+?);', re.DOTALL).findall(title)
+    for c in xmlc:
+        title = title.replace("&#"+c+";", unichr(int(c)))
+
+    return title
 
 def cleanTitleTMDB(title):
     if "[" in title:
