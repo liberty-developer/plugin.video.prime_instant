@@ -23,6 +23,9 @@ import xbmcaddon
 import xbmcvfs
 from HTMLParser import HTMLParser
 import resources.lib.ScrapeUtils as ScrapeUtils
+import gzip
+from StringIO import StringIO
+import binascii
 
 addon = xbmcaddon.Addon()
 addonID = addon.getAddonInfo('id')
@@ -91,7 +94,7 @@ NODEBUG = False #True
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"
 #userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0"
-opener.addheaders = [('User-agent', userAgent)]
+opener.addheaders = [('User-agent', userAgent), ('Accept-encoding', 'gzip')]
 
 def index():
     loginResult = login()
@@ -799,12 +802,19 @@ def deleteCache():
 def getUnicodePage(url):
     print url
     req = opener.open(url)
-    content = ""
+
+    if req.info().get('Content-Encoding') == 'gzip':
+        content = StringIO( req.read())
+        f = gzip.GzipFile(fileobj=content)
+        content = f.read()
+    else :
+        content = req.read()
+
     if "content-type" in req.headers and "charset=" in req.headers['content-type']:
         encoding=req.headers['content-type'].split('charset=')[-1]
-        content = unicode(req.read(), encoding)
+        content = unicode(content, encoding)
     else:
-        content = unicode(req.read(), "utf-8")
+        content = unicode(content, "utf-8")
     return content
 
 def getAsciiPage(url):
@@ -901,7 +911,14 @@ def login(content = None, statusOnly = False):
                 br = mechanize.Browser()
                 br.set_cookiejar(cj)
                 br.set_handle_robots(False)
-                br.addheaders = [('User-agent', userAgent)]
+                br.set_handle_gzip(True)
+                br.addheaders = [('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'),
+                                ('Accept-Language', 'de,en-US;q=0.8,en;q=0.6'),
+                                ('Cache-Control', 'max-age=0'),
+                                ('Connection', 'keep-alive'),
+                                ('Content-Type', 'application/x-www-form-urlencoded'),
+                                ('User-Agent', userAgent),
+                                ('Upgrade-Insecure-Requests', '1')]
                 content = br.open(urlMainS+"/gp/sign-in.html")
                 br.select_form(name="signIn")
                 br["email"] = email
