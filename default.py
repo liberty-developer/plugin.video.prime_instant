@@ -738,9 +738,10 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
 
         listitem = xbmcgui.ListItem(path=mpdURL)
-        listitem.setProperty('inputstream.mpd.license_type', 'com.widevine.alpha')
-        listitem.setProperty('inputstream.mpd.license_key', licURL)
-        listitem.setProperty('inputstreamaddon', 'inputstream.mpd')
+        listitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+        listitem.setProperty('inputstream.adaptive.license_key', licURL)
+        listitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+        listitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
 
         xbmcplugin.setResolvedUrl(pluginhandle, True, listitem=listitem)
 
