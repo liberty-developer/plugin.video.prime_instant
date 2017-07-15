@@ -10,6 +10,7 @@ import cookielib
 import sys
 import re
 import os
+import platform
 import json
 import time
 import string
@@ -93,7 +94,6 @@ NODEBUG = False #True
 
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"
-#userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0"
 opener.addheaders = [('User-agent', userAgent), ('Accept-encoding', 'gzip')]
 
 def index():
@@ -113,7 +113,7 @@ def browseMovies():
     if showLibrary:
         addDir(translation(30005), urlMain+"/gp/video/library/movie?ie=UTF8&show=all&sort="+watchlistOrder, 'listWatchList', "")
     if siteVersion=="de":
-        addDir(translation(30006), urlMain+"/gp/search/ajax/?_encoding=UTF8&bbn=7125891031&field-is_prime_benefit=3282148031&node=3010075031%2C!3010080031%2C!3010082031%2C7125891031%2C3015915031&pf_rd_i=home&pf_rd_m=A3JWKAKR8XB7XF&pf_rd_p=802167847&pf_rd_r=0BXF55E7RHNZ7WWFJ37X&pf_rd_s=center-16&pf_rd_t=12401&search-alias=instant-video", 'listMovies', "")
+        addDir(translation(30006), urlMain+"/gp/search/ajax/?_encoding=UTF8&bbn=13406075031&node=13406075031&pf_rd_i=home&pf_rd_m=A3JWKAKR8XB7XF&pf_rd_p=1393261427&pf_rd_r=7D907Q42P1K4JR6MMH74&pf_rd_s=center-6&pf_rd_t=12401&search-alias=instant-video", 'listMovies', "")
         addDir(translation(30011), urlMain+"/gp/search/other/?rh=n%3A3279204031%2Cn%3A!3010076031%2Cn%3A3356018031&pickerToList=theme_browse-bin&ie=UTF8", 'listGenres', "", "movie")
         addDir(translation(30014), "", 'listDecadesMovie', "")
         if showKids:
@@ -379,6 +379,7 @@ def listMovies(url):
     xbmcplugin.setContent(pluginhandle, "movies")
     content = getUnicodePage(url)
     debug('listMovies')
+    #debug(url)
     #debug(content)
     content = content.replace("\\","")
     if 'id="catCorResults"' in content:
@@ -698,8 +699,9 @@ def listEpisodes(seriesID, seasonID, thumb, content="", seriesName=""):
 
 def listGenres(url, videoType):
     content = getUnicodePage(url)
+    #debug(url)
     #debug(content)
-    content = content[content.find('<ul class="column vPage1">'):]
+    content = content[content.find('<ul class="s-see-all-pagination-column vPage1">'):]
     content = content[:content.find('</div>')]
     match = re.compile('href="(.+?)">.+?>(.+?)</span>.+?>(.+?)<', re.DOTALL).findall(content)
     for url, title, nr in match:
@@ -727,7 +729,12 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
 
         deviceID = hashlib.sha224("CustomerID" + userAgent).hexdigest()
 
-        asincontent = getUnicodePage('https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content&supportedDRMKeyScheme=DUAL_KEY')
+        asinurl = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content'
+        if platform.platform().find('Android') == -1 :
+            asinurl = asinurl + '&supportedDRMKeyScheme=DUAL_KEY'
+
+        asincontent = getUnicodePage(asinurl)
+        #debug(asincontent)
         asininfo = json.loads(asincontent)
         mpdURL = asininfo['audioVideoUrls']['avCdnUrlSets'][0]['avUrlInfoList'][0]['url'];
         if not mpdURL:
