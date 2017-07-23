@@ -113,7 +113,7 @@ def browseMovies():
     if showLibrary:
         addDir(translation(30005), urlMain+"/gp/video/library/movie?ie=UTF8&show=all&sort="+watchlistOrder, 'listWatchList', "")
     if siteVersion=="de":
-        addDir(translation(30006), urlMain+"/gp/search/ajax/?_encoding=UTF8&bbn=13406075031&node=13406075031&pf_rd_i=home&pf_rd_m=A3JWKAKR8XB7XF&pf_rd_p=1393261427&pf_rd_r=7D907Q42P1K4JR6MMH74&pf_rd_s=center-6&pf_rd_t=12401&search-alias=instant-video", 'listMovies', "")
+        addDir(translation(30006), urlMain+"/gp/search/ajax/?_encoding=UTF8&bbn=3010075031&field-entity_type=9739119031&field-ways_to_watch=7448695031&node=3010075031&pf_rd_i=home&pf_rd_m=A3JWKAKR8XB7XF&pf_rd_p=1381578687&pf_rd_r=DNQ8P36Q8CZGX71BH09Y&pf_rd_s=center-11&pf_rd_t=12401&search-alias=instant-video", 'listMovies', "")
         addDir(translation(30011), urlMain+"/gp/search/other/?rh=n%3A3279204031%2Cn%3A!3010076031%2Cn%3A3356018031&pickerToList=theme_browse-bin&ie=UTF8", 'listGenres', "", "movie")
         addDir(translation(30014), "", 'listDecadesMovie', "")
         if showKids:
