@@ -749,6 +749,8 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         listitem.setProperty('inputstream.adaptive.license_key', licURL)
         listitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
         listitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+        listitem.setMimeType('application/dash+xml')
+        listitem.setContentLookup(False)
 
         xbmcplugin.setResolvedUrl(pluginhandle, True, listitem=listitem)
 
