@@ -742,6 +742,9 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         mpdURL = mpdURL.replace("https", "http")
         log('MPD: '+mpdURL)
 
+        mpdURL = re.sub(r'~', '', mpdURL) if mpdURL != re.sub(r'~', '', mpdURL) else re.sub(r'/[1-9][$].*?/', '/', mpdURL)
+        log('MPD: '+mpdURL)
+
         licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
 
         listitem = xbmcgui.ListItem(path=mpdURL)
