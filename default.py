@@ -74,9 +74,9 @@ watchlistTVOrder = addon.getSetting("watchlistTVOrder")
 watchlistTVOrder = ["DATE_ADDED_DESC", "TITLE_ASC"][int(watchlistTVOrder)]
 selectLanguage = addon.getSetting("selectLanguage")
 siteVersion = addon.getSetting("siteVersion")
-apiMain = ["atv-ps", "atv-ps-eu", "atv-ps-eu", "atv-ps"][int(siteVersion)]
+apiMain = ["atv-ps", "atv-ps-eu", "atv-ps-eu", "atv-ps-fe"][int(siteVersion)]
 marketplaceId=["ATVPDKIKX0DER", "A1F83G8C2ARO7P", "A1PA6795UKMFR9", "A1VC38T7YXB528"][int(siteVersion)]
-siteVersionsList = ["com", "co.uk", "de", "jp"]
+siteVersionsList = ["com", "co.uk", "de", "co.jp"]
 siteVersion = siteVersionsList[int(siteVersion)]
 viewIdMovies = addon.getSetting("viewIdMovies")
 viewIdShows = addon.getSetting("viewIdShows")
@@ -157,6 +157,14 @@ def browseTV():
         addDir(translation(30010), urlMain+"/gp/search/ajax/?_encoding=UTF8&keywords=[OV]&rh=n%3A3010075031%2Cn%3A3015916031%2Ck%3A[OV]%2Cp_85%3A3282148031&sort=date-desc-rank", 'listShows', "")
         addDir(translation(30008), urlMain+"/gp/search/ajax/?_encoding=UTF8&bbn=3279204031&rh=n%3A3279204031%2Cn%3A3010075031%2Cn%3A3015916031&sort=date-desc-rank", 'listShows', "")
         addDir(translation(30999), urlMain+"/gp/search/ajax/?_encoding=UTF8&rh=n%3A3010075031%2Cn%3A3356019031%2Cn%3A4225009031&sort=popularity-rank", 'listShows', "")
+    elif siteVersion=="co.jp":
+        addDir(translation(30006), urlMain+"/gp/search/ajax/?_encoding=UTF8&rh=n%3A2858778011%2Cn%3A7613705011&sort=popularity-rank", 'listShows', "")
+        addDir(translation(30011), urlMain+"/gp/search/other/?rh=n%3A2676882011%2Cn%3A7613705011&pickerToList=theme_browse-bin&ie=UTF8", 'listGenres', "", "tv")
+        addDir(translation(30012), urlMain+"/gp/search/other/?rh=n%3A2676882011%2Cn%3A7613705011&pickerToList=feature_five_browse-bin&ie=UTF8", 'listGenres', "", "tv")
+        addDir(translation(30013), urlMain+"/gp/search/other/?rh=n%3A2676882011%2Cn%3A7613705011&pickerToList=feature_six_browse-bin&ie=UTF8", 'listGenres', "", "tv")
+        if showKids:
+            addDir(translation(30007), urlMain+"/gp/search/ajax/?rh=n%3A2676882011%2Cn%3A7613705011%2Cp_n_theme_browse-bin%3A2650365011&sort=csrank&ie=UTF8", 'listShows', "")
+        addDir(translation(30008), urlMain+"/gp/search/ajax/?_encoding=UTF8&rh=n%3A2858778011%2Cn%3A7613705011&sort=date-desc-rank", 'listShows', "")
     elif siteVersion=="com":
         addDir(translation(30006), urlMain+"/gp/search/ajax/?_encoding=UTF8&rh=n%3A2858778011%2Cn%3A7613705011&sort=popularity-rank", 'listShows', "")
         addDir(translation(30011), urlMain+"/gp/search/other/?rh=n%3A2676882011%2Cn%3A7613705011&pickerToList=theme_browse-bin&ie=UTF8", 'listGenres', "", "tv")
@@ -209,6 +217,8 @@ def listOriginals():
     content = ""
     if siteVersion=="de":
         content = getUnicodePage(urlMain+"/b/?ie=UTF8&node=5457207031")
+    elif siteVersion=="co.jp":
+        content = getUnicodePage(urlMain+"/b/?ie=UTF8&node=3535604051")
     elif siteVersion=="com":
         content = getUnicodePage(urlMain+"/b/?ie=UTF8&node=9940930011")
     elif siteVersion=="co.uk":
@@ -883,6 +893,11 @@ def search(type):
                 listMovies(urlMain+"/mn/search/ajax/?_encoding=UTF8&url=node%3D3356010031&search-alias=instant-video&field-keywords="+search_string)
             elif type=="tv":
                 listShows(urlMain+"/mn/search/ajax/?_encoding=UTF8&url=node%3D3356011031&search-alias=instant-video&field-keywords="+search_string)
+        elif siteVersion=="co.jp":
+            if type=="movies":
+                listMovies(urlMain+"/mn/search/ajax/?_encoding=UTF8&url=node%3D33535604051&search-alias=instant-video&field-keywords="+search_string)
+            elif type=="tv":
+                listShows(urlMain+"/mn/search/ajax/?_encoding=UTF8&url=node%3D3535604051&search-alias=instant-video&field-keywords="+search_string)
 
 
 
@@ -953,13 +968,16 @@ def login(content = None, statusOnly = False):
         else:
             return "none"
 
+def safeint(x):
+   base=10 if x.find("x")==-1 else 16
+   return int(x.replace("x",""),base)
 
 def cleanInput(str):
     if type(str) is not unicode:
         str = unicode(str, "iso-8859-15")
         xmlc = re.compile('&#(.+?);', re.DOTALL).findall(str)
         for c in xmlc:
-            str = str.replace("&#"+c+";", unichr(int(c)))
+            str = str.replace("&#"+c+";", unichr(safeint(c)))
 
     p = HTMLParser()
     str = p.unescape(str)
@@ -988,7 +1006,7 @@ def cleanSeasonTitle(title):
 
     xmlc = re.compile('&#(.+?);', re.DOTALL).findall(title)
     for c in xmlc:
-        title = title.replace("&#"+c+";", unichr(int(c)))
+        title = title.replace("&#"+c+";", unichr(safeint(c)))
 
     return title
 
