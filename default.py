@@ -74,7 +74,7 @@ watchlistTVOrder = addon.getSetting("watchlistTVOrder")
 watchlistTVOrder = ["DATE_ADDED_DESC", "TITLE_ASC"][int(watchlistTVOrder)]
 selectLanguage = addon.getSetting("selectLanguage")
 siteVersion = addon.getSetting("siteVersion")
-apiMain = ["atv-ps", "atv-ps-eu", "atv-ps-eu"][int(siteVersion)]
+apiMain = ["atv-ps", "atv-ps-eu", "atv-ps-eu", "atv-ps"][int(siteVersion)]
 marketplaceId=["ATVPDKIKX0DER", "A1F83G8C2ARO7P", "A1PA6795UKMFR9", "A1VC38T7YXB528"][int(siteVersion)]
 siteVersionsList = ["com", "co.uk", "de", "jp"]
 siteVersion = siteVersionsList[int(siteVersion)]
@@ -85,6 +85,7 @@ viewIdEpisodes = addon.getSetting("viewIdEpisodes")
 viewIdDetails = addon.getSetting("viewIdDetails")
 urlMainS = "https://www.amazon."+siteVersion
 urlMain = "http://www.amazon."+siteVersion
+recourceMain = 'https://' + apiMain + '.amazon.' + siteVersion
 addon.setSetting('email', '')
 addon.setSetting('password', '')
 
@@ -92,8 +93,11 @@ cookieFile = os.path.join(addonUserDataFolder, siteVersion + ".cookies")
 
 NODEBUG = False #True
 
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-userAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"
+HTTPCookieHandler = urllib2.HTTPCookieProcessor(cj)
+HTTPSHandler = urllib2.HTTPSHandler(0)
+
+opener = urllib2.build_opener(HTTPSHandler, HTTPCookieHandler)
+userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Safari/537.36"
 opener.addheaders = [('User-agent', userAgent), ('Accept-encoding', 'gzip')]
 
 def index():
@@ -607,8 +611,8 @@ def listSeasons(seriesName, seriesID, thumb, showAll = False):
         if match:
             for seasonID, title in match:
                 if "dv-season-selector-prime" in title or showAll or showPaidVideos:
-                    if "&lt" in title:
-                        title = title[:title.find("&lt")]
+                    title = title[title.find("&gt;") + 4:]
+                    title = title[:title.find("&lt")]
                     addSeasonDir(title, seasonID, 'listEpisodes', thumb, seriesName, seriesID)
             xbmcplugin.endOfDirectory(pluginhandle)
             xbmc.sleep(100)
@@ -649,7 +653,7 @@ def listEpisodes(seriesID, seasonID, thumb, content="", seriesName=""):
     epliststart = content.find("dv-episode-list")
     eplistend = content.find("ND dv-dp-top-wrapper", epliststart)
     content = content[epliststart:eplistend]
-    spl = content.split('<div id="dv-el-id-')
+    spl = content.split('<div class="dv-episode-container aok-clearfix" id="dv-el-id-')
     for i in range(1, len(spl), 1):
         entry = spl[i]
         match = re.compile('<!-- Title -->(.+?)</', re.DOTALL).findall(entry)
@@ -729,7 +733,7 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
 
         deviceID = hashlib.sha224("CustomerID" + userAgent).hexdigest()
 
-        asinurl = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content'
+        asinurl = recourceMain+'/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content'
         if platform.platform().find('Android') == -1 :
             asinurl = asinurl + '&supportedDRMKeyScheme=DUAL_KEY'
 
@@ -745,7 +749,8 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         mpdURL = re.sub(r'~', '', mpdURL) if mpdURL != re.sub(r'~', '', mpdURL) else re.sub(r'/[1-9][$].*?/', '/', mpdURL)
         log('MPD: '+mpdURL)
 
-        licURL = 'https://'+apiMain+'.amazon.com/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH'
+        cookies = ";".join(["%s=%s" % (cookie.name, cookie.value) for cookie in cj])
+        licURL = recourceMain+'/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=Widevine2License&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=ImmediateConsumption&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH|Cookie='+urllib.quote_plus(cookies)+'&Content-Type=application%2Fx-www-form-urlencoded|widevine2Challenge=B{SSM}&includeHdcpTestKeyInLicense=true|JBlicense;hdcpEnforcementResolutionPixels'
 
         listitem = xbmcgui.ListItem(path=mpdURL)
         listitem.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
