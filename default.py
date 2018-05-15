@@ -10,7 +10,6 @@ import cookielib
 import sys
 import re
 import os
-import platform
 import json
 import time
 import string
@@ -744,7 +743,10 @@ def playVideo(videoID, selectQuality=False, playTrailer=False):
         deviceID = hashlib.sha224("CustomerID" + userAgent).hexdigest()
 
         asinurl = recourceMain+'/cdp/catalog/GetPlaybackResources?asin='+videoID+'&consumptionType=Streaming&desiredResources=AudioVideoUrls%2CCatalogMetadata%2CTransitionTimecodes%2CTrickplayUrls%2CSubtitlePresets%2CSubtitleUrls&deviceID='+deviceID+'&deviceTypeID=AOAGZA014O5RE&firmware=1&marketplaceID='+marketplaceId+'&resourceUsage=CacheResources&videoMaterialType=Feature&operatingSystemName=Windows&operatingSystemVersion=10.0&customerID='+customerID+'&token='+token+'&deviceDrmOverride=CENC&deviceStreamingTechnologyOverride=DASH&deviceProtocolOverride=Https&deviceBitrateAdaptationsOverride=CVBR%2CCBR&audioTrackId=all&titleDecorationScheme=primary-content'
-        if platform.platform().find('Android') == -1 :
+
+        try:
+            subprocess.check_output(['/system/bin/getprop', 'ro.build.version.sdk'])
+        except:
             asinurl = asinurl + '&supportedDRMKeyScheme=DUAL_KEY'
 
         asincontent = getUnicodePage(asinurl)
