@@ -17,5 +17,6 @@
         <source>https://github.com/XLordKX/kodi</source>
         <forum>http://www.kodinerds.net</forum>
         <website>http://www.amazon.com</website>
+        <reuselanguageinvoker>true</reuselanguageinvoker>
     </extension>
 </addon>
