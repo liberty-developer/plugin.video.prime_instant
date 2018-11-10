@@ -923,7 +923,7 @@ def removeFromQueue(videoID, videoType):
 def login(content = None, statusOnly = False):
     if content is None:
         content = getUnicodePage(urlMainS)
-    signoutmatch = re.compile("declare\('config.signOutText',(.+?)\);", re.DOTALL).findall(content)
+    signoutmatch = re.compile("declare\('config.yourAccountPrimeURL',(.+?)\);", re.DOTALL).findall(content)
     if '","isPrime":1' in content: #
         return "prime"
     elif signoutmatch[0].strip() != "null":
@@ -962,7 +962,7 @@ def login(content = None, statusOnly = False):
                 cj.save(cookieFile)
                 cj.load(cookieFile)
                 content = getUnicodePage(urlMainS)
-        signoutmatch = re.compile("declare\('config.signOutText',(.+?)\);", re.DOTALL).findall(content)
+        signoutmatch = re.compile("declare\('config.yourAccountPrimeURL',(.+?)\);", re.DOTALL).findall(content)
         if '","isPrime":1' in content: #
             return "prime"
         elif signoutmatch[0].strip() != "null":
